@@ -12,6 +12,7 @@ struct appAaronApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(PokeBattleController())
         }
     }
 }
