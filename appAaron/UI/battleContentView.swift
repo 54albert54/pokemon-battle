@@ -14,28 +14,33 @@ struct battleContentView:View {
             VStack{
                 
     //            Enemy Area View
-                PokemonArea(showPokemon: vc.enemyPokemon)
+                PokemonArea(showPokemon: vc.enemyPokemon[vc.enemyPokemonIndex])
                     .offset(y:30)
     //            player Area View
-                
-                PokemonArea(showPokemon: vc.playerPokemon , isPlayer: true)
-                    .offset(y:-30)
+               
+                VStack{
+                    PokemonArea(showPokemon: vc.playerPokemon[vc.ownPokemonIndex] , isPlayer: true)
+                        .offset(y:-30)
+                   
+                        
+                }
                 
                 
             }
             .offset(y:50)
             LogArea()
-                .padding(.bottom , 80)
+//                .padding(.bottom , 20)
                 .offset(y:-30)
         }
         
-        .frame(width: 340, height: 560)
+        .frame(width: 400, height: 730)
         .background(.white)
         .clipShape(RoundedRectangle(cornerRadius: 15))
         .overlay(content: {
             RoundedRectangle(cornerRadius: 15).stroke(lineWidth: 2).fill(.black)
         })
-        .padding()
+        .offset(y:-130)
+//        .padding()
     }
 }
 

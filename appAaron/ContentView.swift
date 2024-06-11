@@ -12,15 +12,31 @@ import Kingfisher
 
 struct ContentView: View {
     @EnvironmentObject var vc:PokeBattleController
+    @State var showItems = false
+    @State var showParty = false
+    
    
 
     var body: some View {
         NavigationStack{
             ZStack(alignment:.bottom){
-                Color.blue
+                Color.init(hex: "#444")
                 VStack{
                     battleContentView()
                         .padding(.bottom , 60)
+                        .onChange(of: vc.playerPokemon[vc.ownPokemonIndex].hp) {
+                            let nameCurrentPokemon = vc.playerPokemon[vc.ownPokemonIndex].name
+                            if vc.playerPokemon[vc.ownPokemonIndex].hp <= 0{
+                                
+                                vc.addLog("\(nameCurrentPokemon) is defeated ")
+                                Timer.scheduledTimer(withTimeInterval: 0.6, repeats: false) { _ in
+                                    showParty = true
+                                }
+                                
+                                
+                                
+                            }
+                        }
                     
                     HStack{
                         MainButton(color:.red ){
@@ -33,10 +49,13 @@ struct ContentView: View {
                             Text("items")
                         }
                         .onTapGesture {
-                            vc.showItems.toggle()
+                            showItems.toggle()
                         }
                         MainButton (color:.green ) {
                             Text("party")
+                        }
+                        .onTapGesture {
+                            showParty.toggle()
                         }
                     }
                     .offset(y:-60)
@@ -44,10 +63,40 @@ struct ContentView: View {
             }
             .ignoresSafeArea()
         }
-        .sheet(isPresented: $vc.showItems, content: {
-            ItemContainer(showItems:$vc.showItems )
+        .sheet(isPresented: $showItems, content: {
+            ItemContainer(showItems:$showItems, dataToShow: 
+                            VStack{
+                ListItemsView(tile: "Potions", Quantity: vc.potionCount)
+                    .onTapGesture {
+                        vc.usePotion()
+                        showItems.toggle()
+                    }
+               
+               
+            }, titleMenu: "Items")
             }
         )
+        .sheet(isPresented: $showParty, content: {
+            ItemContainer(showItems:$showParty, dataToShow:
+                            VStack{
+                
+                ForEach(Array(vc.playerPokemon.enumerated()), id:\.element.id){ ind, pokemonteam in
+                    if pokemonteam.islive {
+                        ListItemsView(tile: " \(pokemonteam.name)", Quantity: pokemonteam.hp)
+                            .onTapGesture {
+                                vc.changeMyPokemon( ind)
+                                showParty.toggle()
+                            }
+                    }else {
+                        Text("you lose this pokemon")
+                    }
+                }
+
+            }, titleMenu: "Party" )
+            
+            
+            
+        })
     }
 
 }
@@ -60,13 +109,17 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(PokeBattleController())
+    
 }
 
-struct ItemContainer:View {
+struct ItemContainer<data:View>:View {
     @Binding var showItems:Bool
+    let dataToShow:data
     @EnvironmentObject var vc:PokeBattleController
+    let titleMenu:String
     
-    var urlButton = URL(string: "https://imgs.search.brave.com/CIFIOyV-sca8cjlKcWwz839MJQ9-fFJnnFKwCNfizuY/rs:fit:860:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nYWxsLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvNC9SZWQt/Q2xvc2UtQnV0dG9u/LVBORy1DbGlwYXJ0/LnBuZw")
+    
+  
     var body: some View {
         VStack(alignment:.center){
             HStack{
@@ -74,22 +127,24 @@ struct ItemContainer:View {
                 Button(action: {
                     showItems = false
                 }, label: {
-                    KFImage(urlButton)
+                   
+                        Image(systemName: "xmark.circle.fill")
                         .resizable()
-                        .frame(width: 60 , height: 60)
+                        .aspectRatio(contentMode: .fit)
+                             .foregroundStyle(Color.red)
+                             .frame(width: 30 , height: 30)
                 })
                 .offset(x:-20 , y:20)
-                   
-          
             }
             .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
-           
-            
-            
-            HStack{
-                Text("potion \(vc.potitionCount)")
-                    .padding()
-                Spacer()
+            VStack{
+                Text(titleMenu)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .offset(y:-30)
+             //LIST - ITEMSS
+                dataToShow
+                
             }
                 
             .padding()
@@ -97,7 +152,8 @@ struct ItemContainer:View {
                 
                     .foregroundStyle(.black)
                     .onTapGesture {
-                        vc.usePotion()
+                       
+                        showItems = false
                     }
             
             
@@ -105,11 +161,31 @@ struct ItemContainer:View {
         }
         .frame(width: 320 , height: 400)
         .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 25.0))
+//        .overlay {
+//            RoundedRectangle(cornerRadius: /*@START_MENU_TOKEN@*/25.0/*@END_MENU_TOKEN@*/)
+//        }
     }
 }
 
 
 
+struct ListItemsView:View {
+    var tile:String
+    var Quantity:Int
+    var body: some View {
+        HStack{
+            Text(tile)
+                .font(.title3)
+                .fontWeight(.semibold)
+            Text("\(Quantity)")
+                
+                .padding(.trailing , 30)
+            Spacer()
+    }
+        Divider()
+    }
+}
 
 
 

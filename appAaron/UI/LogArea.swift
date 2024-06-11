@@ -37,6 +37,7 @@ struct LogArea: View {
                             proxy.scrollTo(vc.messages.indices.last, anchor: .bottom)
                         }
                     }
+                  
                 }
             }
             
